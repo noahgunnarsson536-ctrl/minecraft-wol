@@ -9,17 +9,36 @@ jobs:
 
     steps:
       - name: Send Wake-on-LAN packet
+        env:
+          WOL_IP: ${{ secrets.WOL_IP }}
+          WOL_PORT: ${{ secrets.WOL_PORT }}
+          WOL_MAC: ${{ secrets.WOL_MAC }}
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq wakeonlan
+          python3 - <<'PY'
+          import os
+          import socket
 
-          echo "Sending WOL packet..."
-          echo "Target: ${{ secrets.WOL_IP }}:${{ secrets.WOL_PORT }}"
-          echo "MAC: ${{ secrets.WOL_MAC }}"
+          mac = os.environ["WOL_MAC"].replace(":", "").replace("-", "")
 
-          wakeonlan \
-            -i "${{ secrets.WOL_IP }}" \
-            -p "${{ secrets.WOL_PORT }}" \
-            "${{ secrets.WOL_MAC }}"
+          if len(mac) != 12:
+              raise ValueError("Invalid MAC address")
 
-          echo "WOL packet sent."
+          mac_bytes = bytes.fromhex(mac)
+
+          if len(mac_bytes) != 6:
+              raise ValueError("Invalid MAC address")
+
+          magic_packet = b"\xff" * 6 + mac_bytes * 16
+
+          ip = os.environ["WOL_IP"]
+          port = int(os.environ["WOL_PORT"])
+
+          print(f"Sending WOL packet to {ip}:{port}")
+          print(f"Packet size: {len(magic_packet)} bytes")
+
+          with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+              sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+              sock.sendto(magic_packet, (ip, port))
+
+          print("WOL magic packet sent successfully.")
+          PY
