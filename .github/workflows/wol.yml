@@ -10,5 +10,5 @@ jobs:
     steps:
       - name: Wake Minecraft server through Pico
         run: |
-          curl --fail --max-time 15 \
-            "http://${{ secrets.WOL_PICO_IP }}:54322/wake/${{ secrets.WOL_PICO_TOKEN }}"
+          curl -v --max-time 15 \
+  "http://${{ secrets.WOL_PICO_IP }}:54322/wake/${{ secrets.WOL_PICO_TOKEN }}"
