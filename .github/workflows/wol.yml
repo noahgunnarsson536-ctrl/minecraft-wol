@@ -8,37 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Send Wake-on-LAN packet
-        env:
-          WOL_IP: ${{ secrets.WOL_IP }}
-          WOL_PORT: ${{ secrets.WOL_PORT }}
-          WOL_MAC: ${{ secrets.WOL_MAC }}
+      - name: Wake Minecraft server through Pico
         run: |
-          python3 - <<'PY'
-          import os
-          import socket
-
-          mac = os.environ["WOL_MAC"].replace(":", "").replace("-", "")
-
-          if len(mac) != 12:
-              raise ValueError("Invalid MAC address")
-
-          mac_bytes = bytes.fromhex(mac)
-
-          if len(mac_bytes) != 6:
-              raise ValueError("Invalid MAC address")
-
-          magic_packet = b"\xff" * 6 + mac_bytes * 16
-
-          ip = os.environ["WOL_IP"]
-          port = int(os.environ["WOL_PORT"])
-
-          print(f"Sending WOL packet to {ip}:{port}")
-          print(f"Packet size: {len(magic_packet)} bytes")
-
-          with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
-              sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-              sock.sendto(magic_packet, (ip, port))
-
-          print("WOL magic packet sent successfully.")
-          PY
+          curl --fail --max-time 15 \
+            "http://${{ secrets.WOL_PICO_IP }}:54322/wake/${{ secrets.WOL_PICO_TOKEN }}"
