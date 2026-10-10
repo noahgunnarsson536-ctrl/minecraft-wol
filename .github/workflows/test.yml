@@ -1,0 +1,14 @@
+
+name: Test Pico Connection
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test Pico HTTP connection
+        run: |
+          curl -v --connect-timeout 10 --max-time 20 \
+            "http://${{ secrets.WOL_PICO_IP }}:54322/"
