@@ -11,5 +11,5 @@ jobs:
     steps:
       - name: Request PC shutdown through Pico
         run: |
-          curl --fail --show-error --max-time 15 \
+          curl --fail --show-error --max-time 30 \
             "http://${{ secrets.WOL_PICO_IP }}:54322/shutdown/${{ secrets.SHUTDOWN_TOKEN }}"
